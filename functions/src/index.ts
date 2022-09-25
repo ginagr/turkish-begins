@@ -2,6 +2,7 @@ import { ApolloServer, gql } from 'apollo-server-express';
 import express from 'express';
 import admin from 'firebase-admin';
 import { https } from 'firebase-functions';
+import { DateScalar, DateTimeScalar, TimeScalar } from 'graphql-date-scalars';
 
 admin.initializeApp();
 const firestore = admin.firestore();
@@ -31,8 +32,8 @@ interface Restaurant {
   cuisine: Cuisine,
   features: Features,
   score: number,
-  timestampAdded: Date,
-  timestampUpdated: Date,
+  timestampAdded: admin.firestore.Timestamp,
+  timestampUpdated: admin.firestore.Timestamp,
 }
 interface addRestaurantInput {
   name: string,
@@ -68,8 +69,8 @@ const typeDefs = gql`
     cuisine: String # Cuisine Enum
     features: Features
     score: Float # Temp score for getRestaurants query
-    timestampAdded: String
-    timestampUpdated: String
+    timestampAdded: DateTime!
+    timestampUpdated: DateTime!
   }
   type Features {
     kidFriendly: Int
@@ -82,6 +83,9 @@ const typeDefs = gql`
     outdoorSeating: Int
     nonSmoking: Int
   }
+  scalar Date
+  scalar Time
+  scalar DateTime
   input FeaturesInput {
     kidFriendly: Int
     vegetarian: Int
@@ -248,6 +252,7 @@ const addRestaurant = async (_: never, { input }: { input: addRestaurantInput })
   }
 };
 
+// TODO: clean up
 const resolvers = {
   Query: {
     getAllRestaurants: async (_: never, args: any): Promise<any> => await getAllRestaurants(_, args),
@@ -256,9 +261,13 @@ const resolvers = {
   Mutation: {
     addRestaurant: async (_: never, args: any): Promise<any> => await addRestaurant(_, args),
   },
-  // Restaurant: {
-  //   timestampAdded: ({ timestampAdded: Timestamp }) => new Date(timestampAdded).
-  // }
+  Restaurant: {
+    timestampAdded: ({ timestampAdded }: Restaurant): Date => timestampAdded.toDate(),
+    timestampUpdated: ({ timestampUpdated }: Restaurant): Date => timestampUpdated.toDate(),
+  },
+  Date: DateScalar,
+  Time: TimeScalar,
+  DateTime: DateTimeScalar,
 };
 
 const app = express();
