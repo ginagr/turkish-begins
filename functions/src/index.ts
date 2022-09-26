@@ -8,21 +8,33 @@ admin.initializeApp();
 const firestore = admin.firestore();
 firestore.settings({ ignoreUndefinedProperties: true });
 
+// TODO: migrate to type-graphql?
 enum Cuisine {
-  'COUNTRY',
-  'NOT_COUNTRY',
-  'ANYTHING',
+  COUNTRY,
+  NOT_COUNTRY,
+  ANYTHING,
+}
+enum FeatureList {
+  KID_FRIENDLY,
+  VEGETARIAN,
+  VEGAN,
+  VIEW,
+  INSTAGRAM,
+  ALCOHOL,
+  CLOSE_ATTRACTIONS,
+  OUTDOOR_SEATING,
+  NON_SMOKING,
 }
 interface Features {
-  kidFriendly: number,
-  vegetarian: number,
-  vegan: number,
-  view: number,
-  instagram: number,
-  alcohol: number,
-  closeAttractions: number,
-  outdoorSeating: number,
-  nonSmoking: number,
+  KID_FRIENDLY?: number,
+  VEGETARIAN?: number,
+  VEGAN?: number,
+  VIEW?: number,
+  INSTAGRAM?: number,
+  ALCOHOL?: number,
+  CLOSE_ATTRACTIONS?: number,
+  OUTDOOR_SEATING?: number,
+  NON_SMOKING?: number,
 }
 interface Restaurant {
   id: string,
@@ -31,7 +43,8 @@ interface Restaurant {
   price: number,
   cuisine: Cuisine,
   features: Features,
-  score: number,
+  topFeatures: FeatureList[], // string list of features above 2
+  score: number, // dynamic based on query
   timestampAdded: admin.firestore.Timestamp,
   timestampUpdated: admin.firestore.Timestamp,
 }
@@ -68,34 +81,46 @@ const typeDefs = gql`
     price: Float
     cuisine: String # Cuisine Enum
     features: Features
+    topFeatures: [FeatureList]
     score: Float # Temp score for getRestaurants query
     timestampAdded: DateTime!
     timestampUpdated: DateTime!
   }
   type Features {
-    kidFriendly: Int
-    vegetarian: Int
-    vegan: Int
-    view: Int
-    instagram: Int
-    alcohol: Int
-    closeAttractions: Int
-    outdoorSeating: Int
-    nonSmoking: Int
+    KID_FRIENDLY: Int
+    VEGETARIAN: Int
+    VEGAN: Int
+    VIEW: Int
+    INSTAGRAM: Int
+    ALCOHOL: Int
+    CLOSE_ATTRACTIONS: Int
+    OUTDOOR_SEATING: Int
+    NON_SMOKING: Int
+  }
+  enum FeatureList {
+    KID_FRIENDLY
+    VEGETARIAN
+    VEGAN
+    VIEW
+    INSTAGRAM
+    ALCOHOL
+    CLOSE_ATTRACTIONS
+    OUTDOOR_SEATING
+    NON_SMOKING
   }
   scalar Date
   scalar Time
   scalar DateTime
   input FeaturesInput {
-    kidFriendly: Int
-    vegetarian: Int
-    vegan: Int
-    view: Int
-    instagram: Int
-    alcohol: Int
-    closeAttractions: Int
-    outdoorSeating: Int
-    nonSmoking: Int
+    KID_FRIENDLY: Int
+    VEGETARIAN: Int
+    VEGAN: Int
+    VIEW: Int
+    INSTAGRAM: Int
+    ALCOHOL: Int
+    CLOSE_ATTRACTIONS: Int
+    OUTDOOR_SEATING: Int
+    NON_SMOKING: Int
   }
   input GetRestaurantsInput {
     minBudget: Float
@@ -133,8 +158,6 @@ const getAllRestaurants = async (_: never, { input = {} }: { input?: getAllResta
       ...docSnap.data(), id: docSnap.id,
     } as Restaurant));
 
-    console.log(list);
-
     return list;
   } catch (err) {
     // eslint-disable-next-line no-console
@@ -146,7 +169,6 @@ const getAllRestaurants = async (_: never, { input = {} }: { input?: getAllResta
 // const getRestaurants = async (_: never, { input = {} }: { input?: getRestaurantInput }): Promise<Restaurant[]> => {
 const getRestaurants = async (_: never, { input = {} }: { input?: getRestaurantInput }): Promise<Restaurant[]> => {
   try {
-    console.log('input', input);
     const {
       minBudget,
       maxBudget,
@@ -157,7 +179,7 @@ const getRestaurants = async (_: never, { input = {} }: { input?: getRestaurantI
       typeof minBudget !== 'number' &&
       typeof maxBudget !== 'number' &&
       !cuisine &&
-      typeof features !== 'undefined'
+      typeof features === 'undefined'
     ) {
       return [];
     }
@@ -173,7 +195,10 @@ const getRestaurants = async (_: never, { input = {} }: { input?: getRestaurantI
     const featureKeys = typeof features !== 'undefined' ? Object.keys(features) : [];
     const featureLength = featureKeys.length;
 
-    let query = firestore.collection('restaurants').orderBy('price');
+    let query = firestore.collection('restaurants') as admin.firestore.Query<admin.firestore.DocumentData>;
+    if (typeof minBudget === 'number' || typeof maxBudget === 'number') {
+      query = query.orderBy('price');
+    }
     if (typeof minBudget === 'number') {
       query = query.where('price', '>=', minBudget);
     }
@@ -184,9 +209,10 @@ const getRestaurants = async (_: never, { input = {} }: { input?: getRestaurantI
       query = query.where('cuisine', '==', cuisine);
     }
     if (featureLength) {
-      featureKeys.map((key) => {
-        query = query.where(key, '>=', 3);
-      });
+      query = query.where('topFeatures', 'array-contains-any', featureKeys);
+      // featureKeys.map((key) => {
+      //   query = query.orderBy(key).where(key, '>=', 3);
+      // });
     }
     query = query.orderBy('name');
     query = query.limit(100);
@@ -197,7 +223,7 @@ const getRestaurants = async (_: never, { input = {} }: { input?: getRestaurantI
     queryResults.forEach((queryDoc) => {
       const restaurant = queryDoc.data() as Restaurant;
       restaurant.id = queryDoc.id;
-      if (!featureLength) {
+      if (!featureLength || !Object.keys(restaurant.features).length) {
         // todo: compute score based on all features?
         restaurant.score = 1;
         data.push(restaurant);
@@ -205,7 +231,7 @@ const getRestaurants = async (_: never, { input = {} }: { input?: getRestaurantI
       }
 
       const cumulativeScore = featureKeys.reduce((acc, curr) => {
-        const restaurantFeature = restaurant.features[curr as keyof Features];
+        const restaurantFeature = restaurant.features[curr as keyof Features] || 0;
         return acc + restaurantFeature;
       }, 0);
 
@@ -214,7 +240,6 @@ const getRestaurants = async (_: never, { input = {} }: { input?: getRestaurantI
     });
 
     data.sort((a, b) => a.score - b.score);
-    console.log(data);
 
     return data;
   } catch (err) {
@@ -225,7 +250,6 @@ const getRestaurants = async (_: never, { input = {} }: { input?: getRestaurantI
 };
 
 const addRestaurant = async (_: never, { input }: { input: addRestaurantInput }): Promise<string> => {
-  console.log(input);
   const {
     name,
     address,
@@ -234,12 +258,15 @@ const addRestaurant = async (_: never, { input }: { input: addRestaurantInput })
     features,
   } = input;
   try {
+    const topFeatures = Object.entries(features || [])
+      .filter(([, val]) => val > 2).map(([val]) => val);
     const restaurantRes = await firestore.collection('restaurants').add({
       name,
       address,
       price,
       cuisine,
       features,
+      topFeatures,
       timestampAdded: new Date(),
       timestampUpdated: new Date(),
     });
