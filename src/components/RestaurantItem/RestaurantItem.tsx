@@ -1,25 +1,14 @@
-import * as React from 'react';
+import React, { useCallback } from 'react';
 import { Features, Restaurant } from '../../models';
+import { formatScreamSnakeCase } from '../../utils';
 import './restaurant-item.scss';
 
 interface Props {
   restaurant: Restaurant,
+  selectedFeatures?: Features,
 }
 
-const formatScreamSnakeCase = (f: string): string => {
-  const lower = f.toLowerCase();
-  const spaces = lower.replace('_', ' ');
-  const cuisine = spaces.replace('country', 'turkish');
-  return cuisine;
-};
-
-const rateFeature = (f: number): string => {
-  if (f > 3) return 'high';
-  if (f < 3) return 'low';
-  return 'middle';
-};
-
-const RestaurantItem: React.FC<Props> = ({ restaurant }) => {
+const RestaurantItem: React.FC<Props> = ({ restaurant, selectedFeatures }) => {
   const {
     features,
   } = restaurant;
@@ -28,23 +17,30 @@ const RestaurantItem: React.FC<Props> = ({ restaurant }) => {
     .filter((k) => k !== '__typename' && features[k] !== -1)
     .sort((a, b) => +features[b]! - +features[a]!);
 
+  const rateFeature = useCallback((f: number, k: keyof Features): string => {
+    const isFeatured = typeof selectedFeatures?.[k] !== 'undefined' ? 'featured' : '';
+    if (f > 3) return `${isFeatured} high`;
+    if (f < 3) return `${isFeatured} low`;
+    return `${isFeatured} middle`;
+  }, []);
+
   return (
-    <div className="card">
+    <div className="restaurant-item-container card">
       <div className="row">
         <div className="col-4">
           <div className="title-side">
             <h2>
               {restaurant.name}
             </h2>
-            <h2 className="score">
-              {!!restaurant.score && `Score: ${restaurant.score}` }
-            </h2>
-            <h5>
+            <h3 className="score">
+              {!!restaurant.score && `Score: ${restaurant.score} out of 5` }
+            </h3>
+            <h4>
               Cuisine: {formatScreamSnakeCase(String(restaurant.cuisine))}
-            </h5>
-            <h5>
+            </h4>
+            <h4>
               Price: {restaurant.price}
-            </h5>
+            </h4>
           </div>
         </div>
         <div className="col-8">
@@ -55,7 +51,7 @@ const RestaurantItem: React.FC<Props> = ({ restaurant }) => {
               const featureRating = features[featureKey] as number;
               return (
                 <span
-                  className={`feature ${rateFeature(featureRating)}`}
+                  className={`feature ${rateFeature(featureRating, featureKey)}`}
                   key={String(featureKey)}
                 >
                   {formatScreamSnakeCase(featureKey)}: {featureRating}

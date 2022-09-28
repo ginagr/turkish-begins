@@ -3,7 +3,7 @@ import {
 } from 'react-router-dom';
 import './App.scss';
 import {
-  AllRestaurantList, RestaurantQuiz,
+  AddRestaurant, AllRestaurantList, RestaurantQuiz,
 } from './components';
 
 const App = (): JSX.Element => (
@@ -30,7 +30,7 @@ const App = (): JSX.Element => (
       </div>
       <Routes>
         <Route path="/" element={<AllRestaurantList />} />
-        <Route path="add" element={<AllRestaurantList />} />
+        <Route path="add" element={<AddRestaurant />} />
         <Route path="quiz" element={<RestaurantQuiz />} />
       </Routes>
     </BrowserRouter>

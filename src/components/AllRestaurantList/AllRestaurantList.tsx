@@ -8,7 +8,9 @@ import './all-restaurant-list.scss';
 const AllRestaurantList: React.FC = () => {
   const { data, loading, error } = useQuery<{
     getAllRestaurants: Restaurant[],
-  }>(GET_ALL_RESTAURANT_QUERY);
+  }>(GET_ALL_RESTAURANT_QUERY, {
+    fetchPolicy: 'cache-and-network',
+  });
 
   return (
     <div className="all-restaurant-list-container container">

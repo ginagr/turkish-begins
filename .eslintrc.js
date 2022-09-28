@@ -459,9 +459,6 @@ module.exports = {
     'no-useless-return': [
       'error',
     ],
-    'no-void': [
-      'error',
-    ],
     'no-whitespace-before-property': [
       'error',
     ],

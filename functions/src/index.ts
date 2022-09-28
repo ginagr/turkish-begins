@@ -10,9 +10,9 @@ firestore.settings({ ignoreUndefinedProperties: true });
 
 // TODO: migrate to type-graphql?
 enum Cuisine {
-  COUNTRY= 'COUNTRY',
-  NOT_COUNTRY= 'NOT_COUNTRY',
-  ANYTHING= 'ANYTHING',
+  COUNTRY = 'COUNTRY',
+  NOT_COUNTRY = 'NOT_COUNTRY',
+  ANYTHING = 'ANYTHING',
 }
 enum FeatureList {
   KID_FRIENDLY,
@@ -229,7 +229,7 @@ const getRestaurants = async (_: never, { input = {} }: { input?: getRestaurantI
     if (featureLength) {
       query = query.where('topFeatures', 'array-contains-any', featureKeys);
       // featureKeys.map((key) => {
-      //   query = query.orderBy(key).where(key, '>=', 3);
+      // query = query.orderBy(key).where(key, '>=', 3);
       // });
     }
     query = query.orderBy('name');
@@ -249,7 +249,7 @@ const getRestaurants = async (_: never, { input = {} }: { input?: getRestaurantI
       }
 
       const cumulativeScore = featureKeys.reduce((acc, curr) => {
-        const restaurantFeature = restaurant.features[curr as keyof Features] || 0;
+        const restaurantFeature = restaurant.features[curr as keyof Features] || -1;
         return acc + restaurantFeature;
       }, 0);
 
@@ -276,6 +276,8 @@ const addRestaurant = async (_: never, { input }: { input: addRestaurantInput })
     features,
   } = input;
   try {
+    const nonEmptyFeatures = Object.entries(features || {})
+      .map(([key, val]) => [key, val || -1]);
     const topFeatures = Object.entries(features || [])
       .filter(([, val]) => val > 2).map(([val]) => val);
     const restaurantRes = await firestore.collection('restaurants').add({
@@ -283,7 +285,7 @@ const addRestaurant = async (_: never, { input }: { input: addRestaurantInput })
       address,
       price,
       cuisine,
-      features,
+      features: Object.fromEntries(nonEmptyFeatures),
       topFeatures,
       timestampAdded: new Date(),
       timestampUpdated: new Date(),
@@ -320,6 +322,7 @@ const app = express();
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  cache: 'bounded',
 });
 server.start().then(() => {
   server.applyMiddleware({ app, path: '/', cors: true });

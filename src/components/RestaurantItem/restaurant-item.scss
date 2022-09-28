@@ -1,7 +1,4 @@
-.card {
-  margin-bottom: 10px;
-  border-radius: 2px;
-  padding: 10px 16px;
+.restaurant-item-container {
   .title-side {
     text-align: left;
     .score {
@@ -12,17 +9,32 @@
     text-align: left;
     span {
       display: inline-block;
-      padding: 4px 6px;
+      padding: 4px 10px;
       border-radius: 2px;
-      margin: 2px;
+      margin: 6px;
+      min-width: 100px;
+      text-align: center;
+      &.featured {
+        color: white;
+        font-weight: bold;
+      }
       &.high {
-        border: 1px solid #bd4b4b;
+        border: 2px solid #bd4b4b;
+        &.featured {
+          background: #bd4b4b;
+        }
       }
       &.middle {
-        border: 1px solid #e48c2a;
+        border: 2px solid #e48c2a;
+        &.featured {
+          background: #e48c2a;
+        }
       }
       &.low {
-        border: 1px solid #e4ce1e;
+        border: 2px solid #e4ce1e;
+        &.featured {
+          background: #e4ce1e;
+        }
       }
     }
   }

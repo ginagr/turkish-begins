@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useQuery } from '@apollo/client';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Cuisine, FeatureList, Features, getRestaurantInput, Restaurant } from '../../models';
+import { formatScreamSnakeCase } from '../../utils';
 import RestaurantItem from '../RestaurantItem';
 import GET_RESTAURANT_QUERY from './query';
 import './restaurant-quiz.scss';
@@ -25,18 +26,19 @@ const RestaurantQuiz: React.FC = () => {
     },
   });
 
-  // eslint-disable-next-line no-console
-  console.log(res);
-  console.log({
-    minBudget,
-    maxBudget,
-    cuisine,
-    features,
-  });
   const { data, loading, error } = res;
 
-  const resultList = (data?.getRestaurants || [])
-    .sort((a, b) => b.score - a.score);
+  const resultList = [...data?.getRestaurants || []].sort((a, b) => b.score - a.score);
+
+  const toggleFeature = useCallback((newVal: boolean, feature: FeatureList) => {
+    const newFeatures: Features = { ...features };
+    if (newVal) { // add
+      newFeatures[feature] = 5;
+    } else { // remove
+      delete newFeatures[feature];
+    }
+    setFeatures(newFeatures);
+  }, [features, setFeatures]);
 
   return (
     <div className="restaurant-quiz-container container">
@@ -85,24 +87,12 @@ const RestaurantQuiz: React.FC = () => {
                   type="checkbox"
                   id={feature}
                   checked={!!features?.[feature as keyof Features]}
-                  onChange={(): void => {
-                    setFeatures((oldFeatures) => {
-                      if (oldFeatures?.[feature as keyof Features]) {
-                        delete oldFeatures[feature as keyof Features];
-                        console.log('old', oldFeatures, feature);
-                        return oldFeatures;
-                      }
-                      const finalFeatures = oldFeatures ? {
-                        ...oldFeatures, [feature]: 5,
-                      } : { [feature]: 5 } as Features;
-                      console.log('new', finalFeatures, feature);
-                      return finalFeatures;
-                    });
+                  onChange={(val): void => {
+                    toggleFeature(val.target.checked, feature as FeatureList);
                   }}
                 />
                 <label className="form-check-label" htmlFor={feature}>
-                  {/* {features?[feature as keyof Features]} */}
-                  {feature}
+                  {formatScreamSnakeCase(feature)}
                 </label>
               </div>
             </div>
@@ -114,16 +104,22 @@ const RestaurantQuiz: React.FC = () => {
           </div>
         </div>
       </div>
-      {loading && <div>Loading...</div>}
-      {error && <div>Error: {error.message} </div>}
-      {!!resultList && (
-        <div>
-          {resultList.length === 0 && <div>No restaurant data to show</div>}
-          {resultList.map((restaurant) => (
-            <RestaurantItem key={restaurant.id} restaurant={restaurant}/>
-          ))}
-        </div>
-      )}
+      <div className="text-center">
+        {loading && <div>Loading...</div>}
+        {error && <div className="error">Error: {error.message} </div>}
+        {(!loading && !!resultList) && (
+          <div>
+            {resultList.length === 0 && <div>No restaurant data to show</div>}
+            {resultList.map((restaurant) => (
+              <RestaurantItem
+                key={restaurant.id}
+                restaurant={restaurant}
+                selectedFeatures={features}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
