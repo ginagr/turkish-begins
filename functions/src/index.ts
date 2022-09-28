@@ -68,6 +68,7 @@ interface getAllRestaurantInput {
 
 const typeDefs = gql`
   type Query {
+    getRestaurant(id: ID!): Restaurant
     getRestaurants(input: GetRestaurantsInput): [Restaurant]!
     getAllRestaurants: [Restaurant]!
   }
@@ -137,6 +138,24 @@ const typeDefs = gql`
   }
 `;
 
+const getRestaurant = async (_: never, { id }: { id: string }): Promise<Restaurant> => {
+  try {
+    const restaurantRef = await firestore.collection('restaurants').doc(id).get();
+    if (!restaurantRef.exists) {
+      throw new Error(`Could not find restaurant from id ${id}`);
+    }
+
+    const restaurant = restaurantRef.data() as Restaurant;
+    restaurant.id = id;
+
+    return restaurant;
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error(err);
+    throw err;
+  }
+};
+
 const getAllRestaurants = async (_: never, { input = {} }: { input?: getAllRestaurantInput }): Promise<Restaurant[]> => {
   try {
     const {
@@ -166,7 +185,6 @@ const getAllRestaurants = async (_: never, { input = {} }: { input?: getAllResta
   }
 };
 
-// const getRestaurants = async (_: never, { input = {} }: { input?: getRestaurantInput }): Promise<Restaurant[]> => {
 const getRestaurants = async (_: never, { input = {} }: { input?: getRestaurantInput }): Promise<Restaurant[]> => {
   try {
     const {
@@ -282,6 +300,7 @@ const addRestaurant = async (_: never, { input }: { input: addRestaurantInput })
 // TODO: clean up
 const resolvers = {
   Query: {
+    getRestaurant: async (_: never, args: any): Promise<any> => await getRestaurant(_, args),
     getAllRestaurants: async (_: never, args: any): Promise<any> => await getAllRestaurants(_, args),
     getRestaurants: async (_: never, args: any): Promise<any> => await getRestaurants(_, args),
   },
