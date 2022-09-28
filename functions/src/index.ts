@@ -10,9 +10,9 @@ firestore.settings({ ignoreUndefinedProperties: true });
 
 // TODO: migrate to type-graphql?
 enum Cuisine {
-  COUNTRY,
-  NOT_COUNTRY,
-  ANYTHING,
+  COUNTRY= 'COUNTRY',
+  NOT_COUNTRY= 'NOT_COUNTRY',
+  ANYTHING= 'ANYTHING',
 }
 enum FeatureList {
   KID_FRIENDLY,
@@ -317,7 +317,10 @@ const resolvers = {
 };
 
 const app = express();
-const server = new ApolloServer({ typeDefs, resolvers });
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+});
 server.start().then(() => {
   server.applyMiddleware({ app, path: '/', cors: true });
 }).catch((err) => { throw err; });

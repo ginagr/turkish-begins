@@ -1,0 +1,29 @@
+.card {
+  margin-bottom: 10px;
+  border-radius: 2px;
+  padding: 10px 16px;
+  .title-side {
+    text-align: left;
+    .score {
+      color: #fab526;
+    }
+  }
+  .feature-side {
+    text-align: left;
+    span {
+      display: inline-block;
+      padding: 4px 6px;
+      border-radius: 2px;
+      margin: 2px;
+      &.high {
+        border: 1px solid #bd4b4b;
+      }
+      &.middle {
+        border: 1px solid #e48c2a;
+      }
+      &.low {
+        border: 1px solid #e4ce1e;
+      }
+    }
+  }
+}
