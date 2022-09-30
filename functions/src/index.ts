@@ -243,7 +243,7 @@ const getRestaurants = async (_: never, { input = {} }: { input?: getRestaurantI
       restaurant.id = queryDoc.id;
       if (!featureLength || !Object.keys(restaurant.features).length) {
         // todo: compute score based on all features?
-        restaurant.score = 1;
+        restaurant.score = 5;
         data.push(restaurant);
         return;
       }
@@ -298,6 +298,38 @@ const addRestaurant = async (_: never, { input }: { input: addRestaurantInput })
     throw err;
   }
 };
+
+// const removeRestaurant = async ({
+//   name,
+//   id,
+// }: {
+//   name: string,
+//   id: string,
+// }): Promise<string> => {
+//   try {
+//     if (!name && !id) {
+//       throw new Error('Missing data to remove a new restaurant - required name OR id');
+//     }
+
+//     let idToDelete = id;
+
+//     if (!idToDelete) {
+//       // need to find item before deleting
+//       // todo limit to 1
+//       const collectionRef = collection(getFirestore(), 'restaurant');
+//       const queryResults = await getDocs(query(collectionRef, where('name', '==', name)));
+
+//       idToDelete = queryResults.docs[0].id;
+//     }
+
+//     await deleteDoc(doc(getFirestore(), 'restaurants', idToDelete));
+//     return idToDelete;
+//   } catch (err) {
+//     // eslint-disable-next-line no-console
+//     console.error(err);
+//     throw err;
+//   }
+// };
 
 // TODO: clean up
 const resolvers = {
