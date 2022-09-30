@@ -7,8 +7,8 @@ import './index.css';
 import reportWebVitals from './reportWebVitals';
 
 const client = new ApolloClient({
-  uri: 'http://localhost:5001/turkish-begins/us-central1/graphql',
-  // uri: 'https://us-central1-turkish-begins.cloudfunctions.net/graphql',
+  // uri: 'http://localhost:5001/turkish-begins/us-central1/graphql',
+  uri: 'https://us-central1-turkish-begins.cloudfunctions.net/graphql',
   cache: new InMemoryCache(),
 });
 
