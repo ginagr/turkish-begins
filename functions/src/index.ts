@@ -12,18 +12,17 @@ firestore.settings({ ignoreUndefinedProperties: true });
 enum Cuisine {
   COUNTRY = 'COUNTRY',
   NOT_COUNTRY = 'NOT_COUNTRY',
-  ANYTHING = 'ANYTHING',
 }
 enum FeatureList {
-  KID_FRIENDLY,
-  VEGETARIAN,
-  VEGAN,
-  VIEW,
-  INSTAGRAM,
-  ALCOHOL,
-  CLOSE_ATTRACTIONS,
-  OUTDOOR_SEATING,
-  NON_SMOKING,
+  KID_FRIENDLY = 'KID_FRIENDLY',
+  VEGETARIAN = 'VEGETARIAN',
+  VEGAN = 'VEGAN',
+  VIEW = 'VIEW',
+  INSTAGRAM = 'INSTAGRAM',
+  ALCOHOL = 'ALCOHOL',
+  CLOSE_ATTRACTIONS = 'CLOSE_ATTRACTIONS',
+  OUTDOOR_SEATING = 'OUTDOOR_SEATING',
+  NON_SMOKING = 'NON_SMOKING',
 }
 interface Features {
   KID_FRIENDLY?: number,
@@ -55,6 +54,14 @@ interface addRestaurantInput {
   cuisine: Cuisine,
   features?: Features,
 }
+interface editRestaurantInput {
+  id: string,
+  name?: string,
+  address?: string,
+  price?: number,
+  cuisine?: Cuisine,
+  features?: Features,
+}
 interface getRestaurantInput {
   minBudget?: number,
   maxBudget?: number,
@@ -74,6 +81,8 @@ const typeDefs = gql`
   }
   type Mutation {
     addRestaurant(input: AddRestaurantInput!): ID!
+    editRestaurant(input: EditRestaurantInput!): ID!
+    deleteRestaurant(id: ID!): ID!
   }
   type Restaurant {
     id: ID!
@@ -134,6 +143,14 @@ const typeDefs = gql`
     address: String!
     price: Float!
     cuisine: String! # Cuisine Enum
+    features: FeaturesInput
+  }
+  input EditRestaurantInput {
+    id: ID!
+    name: String
+    address: String
+    price: Float
+    cuisine: String # Cuisine Enum
     features: FeaturesInput
   }
 `;
@@ -299,37 +316,60 @@ const addRestaurant = async (_: never, { input }: { input: addRestaurantInput })
   }
 };
 
-// const removeRestaurant = async ({
-//   name,
-//   id,
-// }: {
-//   name: string,
-//   id: string,
-// }): Promise<string> => {
-//   try {
-//     if (!name && !id) {
-//       throw new Error('Missing data to remove a new restaurant - required name OR id');
-//     }
+const editRestaurant = async (_: never, { input }: { input: editRestaurantInput }): Promise<string> => {
+  const {
+    id,
+    name,
+    address,
+    price,
+    cuisine,
+    features,
+  } = input;
+  try {
+    const restaurantRef = await firestore.collection('restaurants').doc(id).get();
+    if (!restaurantRef.exists) {
+      throw new Error(`Could not find restaurant by id ${id}`);
+    }
 
-//     let idToDelete = id;
+    const nonEmptyFeatures = Object.entries(features || {})
+      .map(([key, val]) => [key, val || -1]);
+    const topFeatures = Object.entries(features || [])
+      .filter(([, val]) => val > 2).map(([val]) => val);
 
-//     if (!idToDelete) {
-//       // need to find item before deleting
-//       // todo limit to 1
-//       const collectionRef = collection(getFirestore(), 'restaurant');
-//       const queryResults = await getDocs(query(collectionRef, where('name', '==', name)));
+    await restaurantRef.ref.update({
+      name,
+      address,
+      price,
+      cuisine,
+      features: Object.fromEntries(nonEmptyFeatures),
+      topFeatures,
+      timestampUpdated: new Date(),
+    });
 
-//       idToDelete = queryResults.docs[0].id;
-//     }
+    return id;
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error(err);
+    throw err;
+  }
+};
 
-//     await deleteDoc(doc(getFirestore(), 'restaurants', idToDelete));
-//     return idToDelete;
-//   } catch (err) {
-//     // eslint-disable-next-line no-console
-//     console.error(err);
-//     throw err;
-//   }
-// };
+const deleteRestaurant = async (_: never, { id }: { id: string }): Promise<string> => {
+  try {
+    const restaurantRef = await firestore.collection('restaurants').doc(id).get();
+    if (!restaurantRef.exists) {
+      throw new Error(`Could not find restaurant by id ${id}`);
+    }
+
+    await restaurantRef.ref.delete();
+
+    return id;
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error(err);
+    throw err;
+  }
+};
 
 // TODO: clean up
 const resolvers = {
@@ -340,6 +380,8 @@ const resolvers = {
   },
   Mutation: {
     addRestaurant: async (_: never, args: any): Promise<any> => await addRestaurant(_, args),
+    editRestaurant: async (_: never, args: any): Promise<any> => await editRestaurant(_, args),
+    deleteRestaurant: async (_: never, args: any): Promise<any> => await deleteRestaurant(_, args),
   },
   Restaurant: {
     timestampAdded: ({ timestampAdded }: Restaurant): Date => timestampAdded.toDate(),
