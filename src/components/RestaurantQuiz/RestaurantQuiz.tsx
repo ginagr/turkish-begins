@@ -4,7 +4,7 @@ import React, { useCallback, useState } from 'react';
 import { Cuisine, FeatureList, Features, getRestaurantInput, Restaurant } from '../../models';
 import { formatScreamSnakeCase } from '../../utils';
 import RestaurantItem from '../RestaurantItem';
-import GET_RESTAURANT_QUERY from './query';
+import GET_RESTAURANTS_QUERY from './query';
 import './restaurant-quiz.scss';
 
 const RestaurantQuiz: React.FC = () => {
@@ -15,12 +15,14 @@ const RestaurantQuiz: React.FC = () => {
 
   const res = useQuery<{
     getRestaurants: Restaurant[],
-  }, getRestaurantInput>(GET_RESTAURANT_QUERY, {
+  }, getRestaurantInput>(GET_RESTAURANTS_QUERY, {
     variables: {
       input: {
         minBudget,
         maxBudget,
-        cuisine,
+        ...cuisine === Cuisine.COUNTRY || cuisine === Cuisine.NOT_COUNTRY ? {
+          cuisine,
+        } : {},
         features,
       },
     },
@@ -72,9 +74,9 @@ const RestaurantQuiz: React.FC = () => {
               onChange={(val): void => { setCuisine(val.target.value as Cuisine); }}
             >
               <option value="">Select a Cuisine</option>
+              <option value={undefined}>Anything</option>
               <option value={Cuisine.COUNTRY}>Turkish</option>
               <option value={Cuisine.NOT_COUNTRY}>Non-Turkish</option>
-              <option value={Cuisine.ANYTHING}>Anything</option>
             </select>
           </div>
         </div>
@@ -97,11 +99,6 @@ const RestaurantQuiz: React.FC = () => {
               </div>
             </div>
           ))}
-          <div className="question">
-            *questions for team:
-            is 'anything' cuisine both turkish and non-turkish, or it's own category?
-            should features be a toggle or a scale?
-          </div>
         </div>
       </div>
       <div className="text-center">

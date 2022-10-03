@@ -1,9 +1,9 @@
 import { useQuery } from '@apollo/client';
-import RestaurantItem from '../RestaurantItem';
 import React from 'react';
 import { Restaurant } from '../../models';
-import GET_ALL_RESTAURANT_QUERY from './query';
+import RestaurantItem from '../RestaurantItem';
 import './all-restaurant-list.scss';
+import GET_ALL_RESTAURANT_QUERY from './query';
 
 const AllRestaurantList: React.FC = () => {
   const { data, loading, error } = useQuery<{

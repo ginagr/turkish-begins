@@ -7,6 +7,16 @@
   }
   .feature-side {
     text-align: left;
+    img {
+      height: 30px;
+      width: auto;
+      cursor: pointer;
+      float: right;
+      transition: 0.15s;
+      &:hover {
+        margin-top: -2px;
+      }
+    }
     span {
       display: inline-block;
       padding: 4px 10px;
@@ -14,6 +24,11 @@
       margin: 6px;
       min-width: 100px;
       text-align: center;
+      transition: 0.15s;
+      &:hover {
+        top: -2px;
+        position: relative;
+      }
       &.featured {
         color: white;
         font-weight: bold;

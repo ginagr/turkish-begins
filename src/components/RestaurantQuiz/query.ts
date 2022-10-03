@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client';
 
-const GET_RESTAURANT_QUERY = gql`
+const GET_RESTAURANTS_QUERY = gql`
   query GetRestaurants($input: GetRestaurantsInput) {
     getRestaurants(input: $input) {
       id
@@ -24,4 +24,4 @@ const GET_RESTAURANT_QUERY = gql`
   }
 `;
 
-export default GET_RESTAURANT_QUERY;
+export default GET_RESTAURANTS_QUERY;

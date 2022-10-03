@@ -88,7 +88,6 @@ const AddRestaurant: React.FC = () => {
             >
               <option value={Cuisine.COUNTRY}>Turkish</option>
               <option value={Cuisine.NOT_COUNTRY}>Non-Turkish</option>
-              <option value={Cuisine.ANYTHING}>Anything</option>
             </select>
           </div>
         </div>

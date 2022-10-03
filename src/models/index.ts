@@ -2,7 +2,6 @@
 export enum Cuisine {
   COUNTRY = 'COUNTRY',
   NOT_COUNTRY = 'NOT_COUNTRY',
-  ANYTHING = 'ANYTHING',
 }
 export enum FeatureList {
   KID_FRIENDLY = 'KID_FRIENDLY',
@@ -45,6 +44,16 @@ export interface addRestaurantInput {
     address: string,
     price: number,
     cuisine: Cuisine,
+    features?: Features,
+  },
+}
+export interface editRestaurantInput {
+  input: {
+    id: string,
+    name?: string,
+    address?: string,
+    price?: number,
+    cuisine?: Cuisine,
     features?: Features,
   },
 }
