@@ -1,4 +1,3 @@
-
 export enum Cuisine {
   COUNTRY = 'COUNTRY',
   NOT_COUNTRY = 'NOT_COUNTRY',
@@ -14,18 +13,9 @@ export enum FeatureList {
   OUTDOOR_SEATING = 'OUTDOOR_SEATING',
   NON_SMOKING = 'NON_SMOKING',
 }
-export interface Features {
-  KID_FRIENDLY?: number,
-  VEGETARIAN?: number,
-  VEGAN?: number,
-  VIEW?: number,
-  INSTAGRAM?: number,
-  ALCOHOL?: number,
-  CLOSE_ATTRACTIONS?: number,
-  OUTDOOR_SEATING?: number,
-  NON_SMOKING?: number,
-  __typename?: string,
-}
+export type Features = {
+  [key in FeatureList]: number;
+};
 export interface Restaurant {
   id: string,
   name: string,
@@ -44,7 +34,7 @@ export interface addRestaurantInput {
     address: string,
     price: number,
     cuisine: Cuisine,
-    features?: Features,
+    features: Features,
   },
 }
 export interface editRestaurantInput {

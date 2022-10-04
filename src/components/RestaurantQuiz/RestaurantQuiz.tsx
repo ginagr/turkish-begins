@@ -2,7 +2,7 @@
 import { useQuery } from '@apollo/client';
 import React, { useCallback, useState } from 'react';
 import { Cuisine, FeatureList, Features, getRestaurantInput, Restaurant } from '../../models';
-import { formatScreamSnakeCase } from '../../utils';
+import { createFeatureIterable, formatScreamSnakeCase } from '../../utils';
 import RestaurantItem from '../RestaurantItem';
 import GET_RESTAURANTS_QUERY from './query';
 import './restaurant-quiz.scss';
@@ -11,7 +11,7 @@ const RestaurantQuiz: React.FC = () => {
   const [minBudget, setMinBudget] = useState(0);
   const [maxBudget, setMaxBudget] = useState(100);
   const [cuisine, setCuisine] = useState<Cuisine>();
-  const [features, setFeatures] = useState<Features>();
+  const [features, setFeatures] = useState({} as Features);
 
   const res = useQuery<{
     getRestaurants: Restaurant[],
@@ -30,7 +30,8 @@ const RestaurantQuiz: React.FC = () => {
 
   const { data, loading, error } = res;
 
-  const resultList = [...data?.getRestaurants || []].sort((a, b) => b.score - a.score);
+  const resultList = [...data?.getRestaurants || []]
+    .sort((a, b) => b.score - a.score);
 
   const toggleFeature = useCallback((newVal: boolean, feature: FeatureList) => {
     const newFeatures: Features = { ...features };
@@ -81,16 +82,16 @@ const RestaurantQuiz: React.FC = () => {
           </div>
         </div>
         <div className="row justify-content-center feature-list">
-          {(Object.keys(FeatureList)).map((feature) => (
+          {(createFeatureIterable()).map((feature) => (
             <div className="col-auto" key={feature}>
               <div className="form-check form-check-inline">
                 <input
                   className="form-check-input"
                   type="checkbox"
                   id={feature}
-                  checked={!!features?.[feature as keyof Features]}
+                  checked={!!features[feature]}
                   onChange={(val): void => {
-                    toggleFeature(val.target.checked, feature as FeatureList);
+                    toggleFeature(val.target.checked, feature);
                   }}
                 />
                 <label className="form-check-label" htmlFor={feature}>

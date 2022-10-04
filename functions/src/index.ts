@@ -24,17 +24,9 @@ enum FeatureList {
   OUTDOOR_SEATING = 'OUTDOOR_SEATING',
   NON_SMOKING = 'NON_SMOKING',
 }
-interface Features {
-  KID_FRIENDLY?: number,
-  VEGETARIAN?: number,
-  VEGAN?: number,
-  VIEW?: number,
-  INSTAGRAM?: number,
-  ALCOHOL?: number,
-  CLOSE_ATTRACTIONS?: number,
-  OUTDOOR_SEATING?: number,
-  NON_SMOKING?: number,
-}
+type Features = {
+  [key in FeatureList]: number;
+};
 interface Restaurant {
   id: string,
   name: string,
@@ -52,7 +44,7 @@ interface addRestaurantInput {
   address: string,
   price: number,
   cuisine: Cuisine,
-  features?: Features,
+  features: Features,
 }
 interface editRestaurantInput {
   id: string,
@@ -87,11 +79,11 @@ const typeDefs = gql`
   type Restaurant {
     id: ID!
     name: String!
-    address: String
-    price: Float
-    cuisine: String # Cuisine Enum
-    features: Features
-    topFeatures: [FeatureList]
+    address: String!
+    price: Float!
+    cuisine: String! # Cuisine Enum
+    features: Features!
+    topFeatures: [FeatureList]!
     score: Float # Temp score for getRestaurants query
     timestampAdded: DateTime!
     timestampUpdated: DateTime!
@@ -143,7 +135,7 @@ const typeDefs = gql`
     address: String!
     price: Float!
     cuisine: String! # Cuisine Enum
-    features: FeaturesInput
+    features: FeaturesInput!
   }
   input EditRestaurantInput {
     id: ID!
@@ -293,16 +285,14 @@ const addRestaurant = async (_: never, { input }: { input: addRestaurantInput })
     features,
   } = input;
   try {
-    const nonEmptyFeatures = Object.entries(features || {})
-      .map(([key, val]) => [key, val || -1]);
-    const topFeatures = Object.entries(features || [])
+    const topFeatures = Object.entries(features)
       .filter(([, val]) => val > 2).map(([val]) => val);
     const restaurantRes = await firestore.collection('restaurants').add({
       name,
       address,
       price,
       cuisine,
-      features: Object.fromEntries(nonEmptyFeatures),
+      features,
       topFeatures,
       timestampAdded: new Date(),
       timestampUpdated: new Date(),
@@ -331,18 +321,15 @@ const editRestaurant = async (_: never, { input }: { input: editRestaurantInput 
       throw new Error(`Could not find restaurant by id ${id}`);
     }
 
-    const nonEmptyFeatures = Object.entries(features || {})
-      .map(([key, val]) => [key, val || -1]);
-    const topFeatures = Object.entries(features || [])
+    const topFeatures = Object.entries(features || {})
       .filter(([, val]) => val > 2).map(([val]) => val);
 
     await restaurantRef.ref.update({
-      name,
-      address,
-      price,
-      cuisine,
-      features: Object.fromEntries(nonEmptyFeatures),
-      topFeatures,
+      ...name ? { name } : {},
+      ...address ? { address } : {},
+      ...typeof price === 'number' ? { price } : {},
+      ...cuisine ? { cuisine } : {},
+      ...features ? { features, topFeatures } : {},
       timestampUpdated: new Date(),
     });
 

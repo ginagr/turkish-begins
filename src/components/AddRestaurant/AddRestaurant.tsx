@@ -1,7 +1,9 @@
 import { useMutation } from '@apollo/client';
 import React, { useEffect, useState } from 'react';
-import { addRestaurantInput, Cuisine, FeatureList, Features } from '../../models';
-import { formatScreamSnakeCase } from '../../utils';
+import { addRestaurantInput, Cuisine } from '../../models';
+import {
+  createEmptyFeatures, createFeatureIterable, formatScreamSnakeCase,
+} from '../../utils';
 import './add-restaurant.scss';
 import ADD_RESTAURANT_MUTATION from './mutation';
 
@@ -11,8 +13,7 @@ const AddRestaurant: React.FC = () => {
   const [address, setAddress] = useState('');
   const [price, setPrice] = useState(0);
   const [cuisine, setCuisine] = useState<Cuisine>(Cuisine.COUNTRY);
-  const [features, setFeatures] = useState(Object.keys(FeatureList)
-    .reduce((acc, curr) => ({ ...acc, [curr]: null }), {} as Features));
+  const [features, setFeatures] = useState(createEmptyFeatures());
 
   const [
     addRestaurantMutation,
@@ -92,45 +93,48 @@ const AddRestaurant: React.FC = () => {
           </div>
         </div>
         <div className="row justify-content-center feature-list">
-          {(Object.keys(FeatureList)).map((feature) => (
-            <div className="col-auto" key={feature}>
-              <label>
-                {formatScreamSnakeCase(feature)} &middot;
-                <span className='feature-num'>
-                  {features[feature as keyof Features] || 'n/a'}
-                </span>
-                {!!features[feature as keyof Features] && (
-                  <>
-                  &middot;
-                    <span
-                      className='clear-feature'
-                      onClick={(): void => {
-                        setFeatures({
-                          ...features,
-                          [feature]: null,
-                        });
-                      }}
-                    >
-                    clear
-                    </span>
-                  </>
-                )}
-              </label>
-              <input
-                className="form-range"
-                type="range"
-                min="1"
-                max="5"
-                value={features[feature as keyof Features] || ''}
-                onChange={(val): void => {
-                  setFeatures({
-                    ...features,
-                    [feature]: +val.target.value || null,
-                  });
-                }}
-              />
-            </div>
-          ))}
+          {createFeatureIterable().map((feature) => {
+            const featureVal = features[feature] === -1 ? null : features[feature];
+            return (
+              <div className="col-auto" key={feature}>
+                <label>
+                  {formatScreamSnakeCase(feature)} &middot;
+                  <span className='feature-num'>
+                    {featureVal || 'n/a' }
+                  </span>
+                  {featureVal && (
+                    <>
+                      &middot;
+                      <span
+                        className='clear-feature'
+                        onClick={(): void => {
+                          setFeatures({
+                            ...features,
+                            [feature]: -1,
+                          });
+                        }}
+                      >
+                        clear
+                      </span>
+                    </>
+                  )}
+                </label>
+                <input
+                  className="form-range"
+                  type="range"
+                  min="1"
+                  max="5"
+                  value={featureVal || ''}
+                  onChange={(val): void => {
+                    setFeatures({
+                      ...features,
+                      [feature]: +val.target.value || -1,
+                    });
+                  }}
+                />
+              </div>
+            );
+          })}
         </div>
         {!!error && (
           <div className="error">Error: {error?.message}</div>

@@ -1,6 +1,9 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
+import { editSvg, trashSvg } from '../../icons';
 import { Features, Restaurant } from '../../models';
+import { Popup } from '../../reusables';
 import { formatScreamSnakeCase } from '../../utils';
+import EditRestaurant from '../EditRestaurant';
 import './restaurant-item.scss';
 
 interface Props {
@@ -13,8 +16,12 @@ const RestaurantItem: React.FC<Props> = ({ restaurant, selectedFeatures }) => {
     features,
   } = restaurant;
 
+  const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+
+  // get relevant features
   const featuresArray = (Object.keys(features) as (keyof Features)[])
-    .filter((k) => k !== '__typename' && features[k] !== -1)
+    .filter((k) => k !== '__typename' as keyof Features && features[k] !== -1)
     .sort((a, b) => +features[b]! - +features[a]!);
 
   const rateFeature = useCallback((f: number, k: keyof Features): string => {
@@ -27,7 +34,7 @@ const RestaurantItem: React.FC<Props> = ({ restaurant, selectedFeatures }) => {
   return (
     <div className="restaurant-item-container card">
       <div className="row">
-        <div className="col-4">
+        <div className="col-12 col-md-4">
           <div className="title-side">
             <h2>
               {restaurant.name}
@@ -43,12 +50,22 @@ const RestaurantItem: React.FC<Props> = ({ restaurant, selectedFeatures }) => {
             </h4>
           </div>
         </div>
-        <div className="col-8">
+        <div className="col-12 col-md-8">
           <div className="feature-side">
+            <img
+              src={trashSvg}
+              alt="delete"
+              onClick={(): void => setOpenDelete(true)}
+            />
+            <img
+              src={editSvg}
+              alt="edit"
+              onClick={(): void => setOpenEdit(true)}
+            />
             <h4>Features:</h4>
             {!featuresArray.length && <div>No features.</div>}
             {featuresArray.map((featureKey) => {
-              const featureRating = features[featureKey] as number;
+              const featureRating = features[featureKey];
               return (
                 <span
                   className={`feature ${rateFeature(featureRating, featureKey)}`}
@@ -57,11 +74,30 @@ const RestaurantItem: React.FC<Props> = ({ restaurant, selectedFeatures }) => {
                   {formatScreamSnakeCase(featureKey)}: {featureRating}
                 </span>
               );
-            })
-            }
+            })}
           </div>
         </div>
       </div>
+      <Popup
+        openPopup={openEdit}
+        setOpenPopup={setOpenEdit}
+        size={90}
+        hideFooter={true}
+      >
+        <EditRestaurant
+          restaurantId={restaurant.id}
+          closePopup={(): void => setOpenEdit(false)}
+        />
+      </Popup>
+      <Popup
+        openPopup={openDelete}
+        setOpenPopup={setOpenDelete}
+      >
+        <h3>Delete Restaurant</h3>
+        <p>
+          Are you sure you want to delete? This is permanent.
+        </p>
+      </Popup>
     </div>
   );
 };
