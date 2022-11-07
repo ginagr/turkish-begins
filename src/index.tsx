@@ -6,7 +6,7 @@ import 'reactjs-popup/dist/index.css';
 import App from './App';
 import { RestaurantQuiz } from './components';
 import './index.css';
-import reportWebVitals from './reportWebVitals';
+// import reportWebVitals from './reportWebVitals';
 
 const client = new ApolloClient({
   // uri: 'http://localhost:5001/turkish-begins/us-central1/graphql',
@@ -41,4 +41,4 @@ if (widgetElement) {
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+// reportWebVitals();
