@@ -6,7 +6,12 @@ import './all-restaurant-list.scss';
 import GET_ALL_RESTAURANT_QUERY from './query';
 
 const AllRestaurantList: React.FC = () => {
-  const { data, loading, error } = useQuery<{
+  const {
+    data,
+    loading,
+    error,
+    refetch,
+  } = useQuery<{
     getAllRestaurants: Restaurant[],
   }>(GET_ALL_RESTAURANT_QUERY, {
     fetchPolicy: 'cache-and-network',
@@ -21,7 +26,11 @@ const AllRestaurantList: React.FC = () => {
         <div>
           {data.getAllRestaurants.length === 0 && <div>No restaurant data to show</div>}
           {data?.getAllRestaurants.map((restaurant) => (
-            <RestaurantItem key={restaurant.id} restaurant={restaurant}/>
+            <RestaurantItem
+              key={restaurant.id}
+              restaurant={restaurant}
+              refetchRestaurants={refetch}
+            />
           ))}
         </div>
       )}

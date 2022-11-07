@@ -6,7 +6,7 @@ interface Props {
   openPopup: boolean,
   setOpenPopup: Dispatch<SetStateAction<boolean>>,
   hideFooter?: boolean,
-  onAction?: () => void,
+  onAction?: () => any | Promise<any>,
   size?: number,
   children: ReactNode,
 }

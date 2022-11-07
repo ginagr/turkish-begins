@@ -1,15 +1,18 @@
-import React, { useCallback, useState } from 'react';
+import { useMutation } from '@apollo/client';
+import React, { useCallback, useEffect, useState } from 'react';
 import { editSvg, trashSvg } from '../../icons';
 import { Features, Restaurant } from '../../models';
 import { Popup } from '../../reusables';
 import { formatScreamSnakeCase } from '../../utils';
 import EditRestaurant from '../EditRestaurant';
+import DELETE_RESTAURANT_MUTATION from './mutation';
 import './restaurant-item.scss';
 
 interface Props {
   restaurant: Restaurant,
   selectedFeatures?: Features,
   fromQuiz?: boolean,
+  refetchRestaurants?: () => Promise<any>,
 }
 
 const RestaurantItem: React.FC<Props> = (input) => {
@@ -17,6 +20,7 @@ const RestaurantItem: React.FC<Props> = (input) => {
     restaurant,
     selectedFeatures,
     fromQuiz,
+    refetchRestaurants,
   } = input;
 
   const {
@@ -25,6 +29,26 @@ const RestaurantItem: React.FC<Props> = (input) => {
 
   const [openEdit, setOpenEdit] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
+
+  const [
+    deleteRestaurantMutation,
+    { loading, error, data },
+  ] = useMutation<{deleteRestaurant: string}, { id: string }>(
+    DELETE_RESTAURANT_MUTATION, {
+      variables: {
+        id: restaurant.id,
+      },
+    });
+
+  useEffect(() => {
+    if (data?.deleteRestaurant && openDelete) {
+      setOpenDelete(false);
+      if (refetchRestaurants) {
+        refetchRestaurants()
+          .then(() => true).catch(() => false);
+      }
+    }
+  }, [data?.deleteRestaurant]);
 
   // get relevant features
   const featuresArray = (Object.keys(features) as (keyof Features)[])
@@ -103,11 +127,16 @@ const RestaurantItem: React.FC<Props> = (input) => {
       <Popup
         openPopup={openDelete}
         setOpenPopup={setOpenDelete}
+        onAction={deleteRestaurantMutation}
       >
         <h3>Delete Restaurant</h3>
         <p>
           Are you sure you want to delete? This is permanent.
         </p>
+        {loading && 'Deleting...'}
+        {!!error && (
+          <div className="error">Error: {error?.message}</div>
+        )}
       </Popup>
     </div>
   );
