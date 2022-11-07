@@ -9,9 +9,16 @@ import './restaurant-item.scss';
 interface Props {
   restaurant: Restaurant,
   selectedFeatures?: Features,
+  fromQuiz?: boolean,
 }
 
-const RestaurantItem: React.FC<Props> = ({ restaurant, selectedFeatures }) => {
+const RestaurantItem: React.FC<Props> = (input) => {
+  const {
+    restaurant,
+    selectedFeatures,
+    fromQuiz,
+  } = input;
+
   const {
     features,
   } = restaurant;
@@ -52,16 +59,20 @@ const RestaurantItem: React.FC<Props> = ({ restaurant, selectedFeatures }) => {
         </div>
         <div className="col-12 col-md-8">
           <div className="feature-side">
-            <img
-              src={trashSvg}
-              alt="delete"
-              onClick={(): void => setOpenDelete(true)}
-            />
-            <img
-              src={editSvg}
-              alt="edit"
-              onClick={(): void => setOpenEdit(true)}
-            />
+            {!fromQuiz && (
+              <>
+                <img
+                  src={trashSvg}
+                  alt="delete"
+                  onClick={(): void => setOpenDelete(true)}
+                />
+                <img
+                  src={editSvg}
+                  alt="edit"
+                  onClick={(): void => setOpenEdit(true)}
+                />
+              </>
+            )}
             <h4>Features:</h4>
             {!featuresArray.length && <div>No features.</div>}
             {featuresArray.map((featureKey) => {

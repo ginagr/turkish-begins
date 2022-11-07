@@ -4,6 +4,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import 'reactjs-popup/dist/index.css';
 import App from './App';
+import { RestaurantQuiz } from './components';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
 
@@ -14,15 +15,28 @@ const client = new ApolloClient({
 });
 
 const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement,
+  document.getElementById('turkish-begins-root') as HTMLElement,
 );
+
 root.render(
   <React.StrictMode>
     <ApolloProvider client={client}>
       <App />
-    </ApolloProvider>,
+    </ApolloProvider>
   </React.StrictMode>,
 );
+
+const widgetElement = document.getElementById('turkish-begins-widget') as HTMLElement;
+if (widgetElement) {
+  const widget = ReactDOM.createRoot(widgetElement);
+  widget.render(
+    <React.StrictMode>
+      <ApolloProvider client={client}>
+        <RestaurantQuiz />
+      </ApolloProvider>
+    </React.StrictMode>,
+  );
+}
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

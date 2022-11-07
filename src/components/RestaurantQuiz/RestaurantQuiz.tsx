@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useQuery } from '@apollo/client';
 import React, { useCallback, useState } from 'react';
 import { Cuisine, FeatureList, Features, getRestaurantInput, Restaurant } from '../../models';
 import { createFeatureIterable, formatScreamSnakeCase } from '../../utils';
 import RestaurantItem from '../RestaurantItem';
-import GET_RESTAURANTS_QUERY from './query';
 import './restaurant-quiz.scss';
+import GET_RESTAURANTS_QUERY from './query';
 
 const RestaurantQuiz: React.FC = () => {
   const [minBudget, setMinBudget] = useState(0);
@@ -74,7 +73,6 @@ const RestaurantQuiz: React.FC = () => {
               value={cuisine}
               onChange={(val): void => { setCuisine(val.target.value as Cuisine); }}
             >
-              <option value="">Select a Cuisine</option>
               <option value={undefined}>Anything</option>
               <option value={Cuisine.COUNTRY}>Turkish</option>
               <option value={Cuisine.NOT_COUNTRY}>Non-Turkish</option>
@@ -113,6 +111,7 @@ const RestaurantQuiz: React.FC = () => {
                 key={restaurant.id}
                 restaurant={restaurant}
                 selectedFeatures={features}
+                fromQuiz={true}
               />
             ))}
           </div>
