@@ -1,0 +1,21 @@
+.view-quiz-logs-container {
+  .title-row {
+    font-weight: bold;
+    color: #fab526;
+    border-bottom: 2px solid #fab526;
+  }
+  .log-row {
+    padding: 10px 0;
+    border-bottom: 1px solid #fab526;
+    .click-action {
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .no-action {
+      color: darkred;
+    }
+  }
+  .load-button {
+    margin: 20px;
+  }
+}

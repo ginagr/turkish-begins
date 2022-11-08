@@ -28,6 +28,16 @@ export interface Restaurant {
   timestampAdded: Date,
   timestampUpdated: Date,
 }
+export interface QuizLog {
+  id: string,
+  minBudget: number,
+  maxBudget: number,
+  cuisine: Cuisine,
+  features: Features,
+  resultName: string,
+  resultId: string,
+  timestampAdded: Date,
+}
 export interface addRestaurantInput {
   input: {
     name: string,
@@ -59,5 +69,10 @@ export interface getAllRestaurantInput {
   input: {
     limitNum?: number,
     cursor?: string, // name
+  },
+}
+export interface getQuizLogsInput {
+  input: {
+    cursor?: string,
   },
 }

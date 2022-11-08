@@ -39,6 +39,18 @@ interface Restaurant {
   timestampAdded: admin.firestore.Timestamp,
   timestampUpdated: admin.firestore.Timestamp,
 }
+
+interface QuizLog {
+  id: string,
+  minBudget: number,
+  maxBudget: number,
+  cuisine: Cuisine,
+  features: Features,
+  resultId: string,
+  resultName: string,
+  result: Restaurant,
+  timestampAdded: admin.firestore.Timestamp,
+}
 interface addRestaurantInput {
   name: string,
   address: string,
@@ -64,12 +76,16 @@ interface getAllRestaurantInput {
   limitNum?: number,
   cursor?: string, // name
 }
+interface getQuizLogsInput {
+  cursor?: string,
+}
 
 const typeDefs = gql`
   type Query {
     getRestaurant(id: ID!): Restaurant
     getRestaurants(input: GetRestaurantsInput): [Restaurant]!
     getAllRestaurants: [Restaurant]!
+    getQuizLogs(input: GetQuizLogsInput): [QuizLog]!
   }
   type Mutation {
     addRestaurant(input: AddRestaurantInput!): ID!
@@ -98,6 +114,17 @@ const typeDefs = gql`
     CLOSE_ATTRACTIONS: Int
     OUTDOOR_SEATING: Int
     NON_SMOKING: Int
+  }
+  type QuizLog {
+    id: ID!
+    minBudget: Float
+    maxBudget: Float
+    cuisine: String # Cuisine Enum
+    features: Features
+    resultId: ID
+    resultName: String
+    result: Restaurant
+    timestampAdded: DateTime!
   }
   enum FeatureList {
     KID_FRIENDLY
@@ -144,6 +171,9 @@ const typeDefs = gql`
     price: Float
     cuisine: String # Cuisine Enum
     features: FeaturesInput
+  }
+  input GetQuizLogsInput {
+    cursor: String
   }
 `;
 
@@ -247,6 +277,13 @@ const getRestaurants = async (_: never, { input = {} }: { input?: getRestaurantI
     const queryResults = await query.get();
 
     if (queryResults.empty) {
+      await firestore.collection('quiz-logs').add({
+        minBudget,
+        maxBudget,
+        cuisine,
+        features,
+        timestampAdded: new Date(),
+      });
       return [];
     }
 
@@ -274,9 +311,48 @@ const getRestaurants = async (_: never, { input = {} }: { input?: getRestaurantI
 
     const topScore = data[0].score;
     const tiedScores = data.filter((d) => d.score === topScore);
+    const finalResult = tiedScores[Math.floor(Math.random() * tiedScores.length)];
+
+    await firestore.collection('quiz-logs').add({
+      minBudget,
+      maxBudget,
+      cuisine,
+      features,
+      resultId: finalResult.id,
+      resultName: finalResult.name,
+      timestampAdded: new Date(),
+    });
 
     // randomly return any with top score
-    return [tiedScores[Math.floor(Math.random() * tiedScores.length)]];
+    return [finalResult];
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error(err);
+    throw err;
+  }
+};
+
+const getQuizLogs = async (_: never, { input = {} }: { input?: getQuizLogsInput }): Promise<QuizLog[]> => {
+  try {
+    const {
+      cursor,
+    } = input;
+    const collectionRef = firestore.collection('quiz-logs');
+    let query = collectionRef.orderBy('timestampAdded', 'desc');
+    if (cursor) {
+      query = query.startAfter(admin.firestore.Timestamp.fromDate(new Date(cursor)));
+    }
+    query = query.limit(20);
+
+    const documentSnapshots = await query.get();
+
+    // map documentSnapshots to array of objects
+    const list: QuizLog[] = [];
+    documentSnapshots.forEach((docSnap) => list.push({
+      ...docSnap.data(), id: docSnap.id,
+    } as QuizLog));
+
+    return list;
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error(err);
@@ -372,6 +448,7 @@ const resolvers = {
     getRestaurant: async (_: never, args: any): Promise<any> => await getRestaurant(_, args),
     getAllRestaurants: async (_: never, args: any): Promise<any> => await getAllRestaurants(_, args),
     getRestaurants: async (_: never, args: any): Promise<any> => await getRestaurants(_, args),
+    getQuizLogs: async (_: never, args: any): Promise<any> => await getQuizLogs(_, args),
   },
   Mutation: {
     addRestaurant: async (_: never, args: any): Promise<any> => await addRestaurant(_, args),
@@ -381,6 +458,10 @@ const resolvers = {
   Restaurant: {
     timestampAdded: ({ timestampAdded }: Restaurant): Date => timestampAdded.toDate(),
     timestampUpdated: ({ timestampUpdated }: Restaurant): Date => timestampUpdated.toDate(),
+  },
+  QuizLog: {
+    result: async ({ resultId }: QuizLog): Promise<Restaurant> => getRestaurant(null as never, { id: resultId }),
+    timestampAdded: ({ timestampAdded }: QuizLog): Date => timestampAdded.toDate(),
   },
   Date: DateScalar,
   Time: TimeScalar,

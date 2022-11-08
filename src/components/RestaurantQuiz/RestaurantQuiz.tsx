@@ -3,22 +3,24 @@ import React, { useCallback, useState } from 'react';
 import { Cuisine, FeatureList, Features, getRestaurantInput, Restaurant } from '../../models';
 import { createFeatureIterable, formatScreamSnakeCase } from '../../utils';
 import RestaurantItem from '../RestaurantItem';
-import './restaurant-quiz.scss';
 import GET_RESTAURANTS_QUERY from './query';
+import './restaurant-quiz.scss';
 
 const RestaurantQuiz: React.FC = () => {
-  const [minBudget, setMinBudget] = useState(0);
-  const [maxBudget, setMaxBudget] = useState(100);
+  const [hasActivated, setHasActivated] = useState(false);
+  const [minBudget, setMinBudget] = useState<number>();
+  const [maxBudget, setMaxBudget] = useState<number>();
   const [cuisine, setCuisine] = useState<Cuisine>();
   const [features, setFeatures] = useState({} as Features);
 
   const res = useQuery<{
     getRestaurants: Restaurant[],
   }, getRestaurantInput>(GET_RESTAURANTS_QUERY, {
+    skip: !hasActivated,
     variables: {
       input: {
-        minBudget,
-        maxBudget,
+        ...minBudget ? { minBudget } : {},
+        ...maxBudget ? { maxBudget } : {},
         ...cuisine === Cuisine.COUNTRY || cuisine === Cuisine.NOT_COUNTRY ? {
           cuisine,
         } : {},
@@ -39,6 +41,7 @@ const RestaurantQuiz: React.FC = () => {
       delete newFeatures[feature];
     }
     setFeatures(newFeatures);
+    setHasActivated(true);
   }, [features, setFeatures]);
 
   return (
@@ -52,8 +55,12 @@ const RestaurantQuiz: React.FC = () => {
             <input
               className="form-control"
               type="number"
-              value={minBudget}
-              onChange={(val): void => { setMinBudget(+val.target.value); }}
+              value={minBudget || ''}
+              onChange={(val): void => {
+                setMinBudget(+val.target.value);
+                setHasActivated(true);
+              }}
+              placeholder="e.g. 5"
             />
           </div>
           <div className="col-auto">
@@ -61,8 +68,12 @@ const RestaurantQuiz: React.FC = () => {
             <input
               className="form-control"
               type="number"
-              value={maxBudget}
-              onChange={(val): void => { setMaxBudget(+val.target.value); }}
+              value={maxBudget || ''}
+              onChange={(val): void => {
+                setMaxBudget(+val.target.value);
+                setHasActivated(true);
+              }}
+              placeholder="e.g. 30"
             />
           </div>
           <div className="col-auto">
@@ -70,7 +81,10 @@ const RestaurantQuiz: React.FC = () => {
             <select
               className="form-select"
               value={cuisine}
-              onChange={(val): void => { setCuisine(val.target.value as Cuisine); }}
+              onChange={(val): void => {
+                setCuisine(val.target.value as Cuisine);
+                setHasActivated(true);
+              }}
             >
               <option value={undefined}>Anything</option>
               <option value={Cuisine.COUNTRY}>Turkish</option>
@@ -104,7 +118,11 @@ const RestaurantQuiz: React.FC = () => {
         {error && <div className="error">Error: {error.message} </div>}
         {(!loading && !!resultList) && (
           <div>
-            {resultList.length === 0 && <div>No restaurant data to show</div>}
+            {(resultList.length === 0 && hasActivated) && (
+              <div>
+                No restaurants match your selection, please try changing a filter.
+              </div>
+            )}
             {resultList.map((restaurant) => (
               <RestaurantItem
                 key={restaurant.id}
