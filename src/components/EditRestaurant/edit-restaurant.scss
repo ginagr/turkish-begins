@@ -1,0 +1,35 @@
+.edit-restaurant-container {
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .filter-card {
+    .required,
+    .required-copy {
+      color: darkred;
+    }
+    .feature-list {
+      margin-top: 16px;
+      .feature-num {
+        display: inline-block;
+        padding: 0 6px;
+      }
+      .clear-feature {
+        color: darkred;
+        cursor: pointer;
+        display: inline-block;
+        padding-left: 6px;
+        font-weight: normal;
+      }
+      .form-range {
+        width: 200px;
+        display: block;
+        margin-bottom: 10px;
+      }
+    }
+    button {
+      width: 300px;
+      margin: 10px auto;
+    }
+  }
+}
