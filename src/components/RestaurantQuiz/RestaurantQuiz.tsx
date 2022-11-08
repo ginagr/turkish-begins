@@ -29,8 +29,7 @@ const RestaurantQuiz: React.FC = () => {
 
   const { data, loading, error } = res;
 
-  const resultList = [...data?.getRestaurants || []]
-    .sort((a, b) => b.score - a.score);
+  const resultList = [...data?.getRestaurants || []];
 
   const toggleFeature = useCallback((newVal: boolean, feature: FeatureList) => {
     const newFeatures: Features = { ...features };

@@ -246,6 +246,10 @@ const getRestaurants = async (_: never, { input = {} }: { input?: getRestaurantI
 
     const queryResults = await query.get();
 
+    if (queryResults.empty) {
+      return [];
+    }
+
     const data: Restaurant[] = [];
     queryResults.forEach((queryDoc) => {
       const restaurant = queryDoc.data() as Restaurant;
@@ -266,9 +270,13 @@ const getRestaurants = async (_: never, { input = {} }: { input?: getRestaurantI
       data.push(restaurant);
     });
 
-    data.sort((a, b) => a.score - b.score);
+    data.sort((a, b) => b.score - a.score);
 
-    return data;
+    const topScore = data[0].score;
+    const tiedScores = data.filter((d) => d.score === topScore);
+
+    // randomly return any with top score
+    return [tiedScores[Math.floor(Math.random() * tiedScores.length)]];
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error(err);
