@@ -11,20 +11,22 @@ import './index.css';
 const client = new ApolloClient({
   // uri: 'http://localhost:5001/turkish-begins/us-central1/graphql',
   uri: 'https://us-central1-turkish-begins.cloudfunctions.net/graphql',
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    addTypename: false,
+  }),
 });
 
-const root = ReactDOM.createRoot(
-  document.getElementById('turkish-begins-root') as HTMLElement,
-);
-
-root.render(
-  <React.StrictMode>
-    <ApolloProvider client={client}>
-      <App />
-    </ApolloProvider>
-  </React.StrictMode>,
-);
+const mainElement = document.getElementById('turkish-begins-root') as HTMLElement;
+if (mainElement) {
+  const main = ReactDOM.createRoot(mainElement);
+  main.render(
+    <React.StrictMode>
+      <ApolloProvider client={client}>
+        <App />
+      </ApolloProvider>
+    </React.StrictMode>,
+  );
+}
 
 const widgetElement = document.getElementById('turkish-begins-widget') as HTMLElement;
 if (widgetElement) {

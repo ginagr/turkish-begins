@@ -52,7 +52,7 @@ const RestaurantItem: React.FC<Props> = (input) => {
 
   // get relevant features
   const featuresArray = (Object.keys(features) as (keyof Features)[])
-    .filter((k) => k !== '__typename' as keyof Features && features[k] !== -1)
+    .filter((k) => features[k] !== -1)
     .sort((a, b) => +features[b]! - +features[a]!);
 
   const rateFeature = useCallback((f: number, k: keyof Features): string => {
@@ -122,6 +122,7 @@ const RestaurantItem: React.FC<Props> = (input) => {
         <EditRestaurant
           restaurantId={restaurant.id}
           closePopup={(): void => setOpenEdit(false)}
+          refetchRestaurants={refetchRestaurants || ((): Promise<any> => Promise.resolve())}
         />
       </Popup>
       <Popup
