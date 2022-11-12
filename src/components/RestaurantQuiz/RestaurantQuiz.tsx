@@ -12,26 +12,31 @@ const RestaurantQuiz: React.FC = () => {
   const [maxBudget, setMaxBudget] = useState<number>();
   const [cuisine, setCuisine] = useState<Cuisine>();
   const [features, setFeatures] = useState({} as Features);
+  const [resultList, setResultList] = useState<Restaurant[]>([]);
+  const [showNone, setShowNone] = useState(false);
 
-  const res = useQuery<{
-    getRestaurants: Restaurant[],
-  }, getRestaurantInput>(GET_RESTAURANTS_QUERY, {
-    skip: !hasActivated,
-    variables: {
-      input: {
-        ...minBudget ? { minBudget } : {},
-        ...maxBudget ? { maxBudget } : {},
-        ...cuisine === Cuisine.COUNTRY || cuisine === Cuisine.NOT_COUNTRY ? {
-          cuisine,
-        } : {},
-        features,
+  const res = useQuery<{ getRestaurants: Restaurant[] }, getRestaurantInput>(
+    GET_RESTAURANTS_QUERY,
+    {
+      skip: !hasActivated,
+      variables: {
+        input: {
+          ...minBudget ? { minBudget } : {},
+          ...maxBudget ? { maxBudget } : {},
+          ...cuisine === Cuisine.COUNTRY || cuisine === Cuisine.NOT_COUNTRY ? {
+            cuisine,
+          } : {},
+          features,
+        },
       },
-    },
-  });
+      onCompleted: ({ getRestaurants }) => {
+        setResultList(getRestaurants);
+        setHasActivated(false);
+        setShowNone(!getRestaurants.length);
+      },
+    });
 
-  const { data, loading, error } = res;
-
-  const resultList = [...data?.getRestaurants || []];
+  const { loading, error } = res;
 
   const toggleFeature = useCallback((newVal: boolean, feature: FeatureList) => {
     const newFeatures: Features = { ...features };
@@ -41,7 +46,6 @@ const RestaurantQuiz: React.FC = () => {
       delete newFeatures[feature];
     }
     setFeatures(newFeatures);
-    setHasActivated(true);
   }, [features, setFeatures]);
 
   return (
@@ -56,10 +60,7 @@ const RestaurantQuiz: React.FC = () => {
               className="form-control"
               type="number"
               value={minBudget || ''}
-              onChange={(val): void => {
-                setMinBudget(+val.target.value);
-                setHasActivated(true);
-              }}
+              onChange={(val): void => setMinBudget(+val.target.value) }
               placeholder="e.g. 5"
             />
           </div>
@@ -69,10 +70,7 @@ const RestaurantQuiz: React.FC = () => {
               className="form-control"
               type="number"
               value={maxBudget || ''}
-              onChange={(val): void => {
-                setMaxBudget(+val.target.value);
-                setHasActivated(true);
-              }}
+              onChange={(val): void => setMaxBudget(+val.target.value)}
               placeholder="e.g. 30"
             />
           </div>
@@ -81,10 +79,7 @@ const RestaurantQuiz: React.FC = () => {
             <select
               className="form-select"
               value={cuisine}
-              onChange={(val): void => {
-                setCuisine(val.target.value as Cuisine);
-                setHasActivated(true);
-              }}
+              onChange={(val): void => setCuisine(val.target.value as Cuisine)}
             >
               <option value={undefined}>Anything</option>
               <option value={Cuisine.COUNTRY}>Turkish</option>
@@ -112,13 +107,20 @@ const RestaurantQuiz: React.FC = () => {
             </div>
           ))}
         </div>
+        <button
+          className="btn btn-primary"
+          onClick={(): void => setHasActivated(true)}
+          disabled={loading}
+        >
+          Submit!
+        </button>
       </div>
       <div className="text-center">
         {loading && <div>Loading...</div>}
         {error && <div className="error">Error: {error.message} </div>}
         {(!loading && !!resultList) && (
           <div>
-            {(resultList.length === 0 && hasActivated) && (
+            {showNone && (
               <div>
                 No restaurants match your selection, please try changing a filter.
               </div>
