@@ -52,7 +52,6 @@ const RestaurantQuiz: React.FC = () => {
     <div className="restaurant-quiz-container container">
       <h1>Restaurants Quiz</h1>
       <div className="card filter-card">
-        <h2>Filters</h2>
         <div className="row justify-content-center">
           <div className="col-auto">
             <label>Min Budget</label>
