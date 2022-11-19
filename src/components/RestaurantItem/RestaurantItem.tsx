@@ -57,8 +57,8 @@ const RestaurantItem: React.FC<Props> = (input) => {
 
   const rateFeature = useCallback((f: number, k: keyof Features): string => {
     const isFeatured = typeof selectedFeatures?.[k] !== 'undefined' ? 'featured' : '';
-    if (f > 3) return `${isFeatured} high`;
-    if (f < 3) return `${isFeatured} low`;
+    if (f > 3) { return `${isFeatured} high`; }
+    if (f < 3) { return `${isFeatured} low`; }
     return `${isFeatured} middle`;
   }, []);
 
@@ -77,7 +77,7 @@ const RestaurantItem: React.FC<Props> = (input) => {
               Cuisine: {formatScreamSnakeCase(String(restaurant.cuisine))}
             </h4>
             <h4>
-              Price: {restaurant.price}
+              Price: ${restaurant.price.toFixed(2)}
             </h4>
           </div>
         </div>

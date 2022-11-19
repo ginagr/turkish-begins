@@ -142,7 +142,7 @@ const AddRestaurant: React.FC = () => {
         <button
           className="btn btn-primary"
           onClick={(): void => { void addRestaurantMutation(); }}
-          disabled={loading || (!name || !address || !price)}
+          disabled={loading || !(name && address && price)}
         >
           {loading ? 'Saving...' : 'Add Restaurant'}
         </button>

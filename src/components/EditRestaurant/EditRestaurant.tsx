@@ -192,7 +192,7 @@ const EditRestaurant: React.FC<Props> = (props) => {
               <button
                 className="btn btn-primary"
                 onClick={(): void => { void editRestaurantMutation(); }}
-                disabled={editLoading || (!name || !address || !price)}
+                disabled={editLoading || !(name && address && price)}
               >
                 {editLoading ? 'Saving...' : 'Update Restaurant'}
               </button>

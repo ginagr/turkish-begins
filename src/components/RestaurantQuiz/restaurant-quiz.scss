@@ -9,8 +9,10 @@
     .feature-list {
       .form-check {
         margin-top: 2px;
+        min-width: 160px;
       }
-      margin-top: 16px;
+      max-width: 600px;
+      margin: 16px auto 10px;
     }
     button {
       width: 100%;
