@@ -8,6 +8,8 @@ jobs:
     if: '${{ github.event.pull_request.head.repo.full_name == github.repository }}'
     runs-on: ubuntu-latest
     steps:
+      - with:
+        node-version: 18
       - uses: actions/checkout@v2
       - run: yarn install --frozen-lockfile && yarn run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
