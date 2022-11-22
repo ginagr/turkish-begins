@@ -60,7 +60,7 @@ const RestaurantQuiz: React.FC = () => {
               type="number"
               value={minBudget || ''}
               onChange={(val): void => setMinBudget(+val.target.value) }
-              placeholder="e.g. 5"
+              placeholder="e.g. $5"
             />
           </div>
           <div className="col-auto">
@@ -70,7 +70,7 @@ const RestaurantQuiz: React.FC = () => {
               type="number"
               value={maxBudget || ''}
               onChange={(val): void => setMaxBudget(+val.target.value)}
-              placeholder="e.g. 30"
+              placeholder="e.g. $30"
             />
           </div>
           <div className="col-auto">
