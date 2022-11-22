@@ -1,6 +1,7 @@
-@import '../../App.scss';
+@import "../../App.scss";
 
 .restaurant-quiz-container {
+  padding-bottom: 20px;
   .filter-card {
     .question {
       color: darkred;
@@ -10,6 +11,9 @@
       .form-check {
         margin-top: 2px;
         min-width: 160px;
+      }
+      .form-check-input {
+        margin-right: 6px;
       }
       max-width: 600px;
       margin: 16px auto 10px;
